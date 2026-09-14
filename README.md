@@ -1,6 +1,8 @@
 # ⚛️ Machine Coding Lab
 
-A local practice app for React machine-coding interview rounds. It has 78 tasks across Junior, Senior and Staff levels, drawn from reports of real interview rounds (GreatFrontEnd, BFE.dev, Devtools.tech, frontendlead, and write-ups from Atlassian, Rippling, Uber, Meta, Swiggy, Flipkart, Intuit and Razorpay).
+A local practice app for React machine-coding interview rounds. It has 122 tasks across Junior, Senior and Staff levels. They come from practice platforms (GreatFrontEnd, BFE.dev, Devtools.tech, frontendlead, learnersbucket) and first-hand interview reports from Flipkart, Atlassian, Uber, Rippling, Dream11, Airbnb, Meta, Microsoft, Amazon, Google, Stripe, Coinbase, Intuit, Razorpay and Swiggy.
+
+It also covers the round *formats* those companies use: vanilla-JS-only rounds, debugging an existing app, code review of your own submission, and writing tests. See "Round formats to rehearse" in the roadmap.
 
 ```bash
 npm install
@@ -58,4 +60,4 @@ __mockApi.configure({ latency: [1500, 3000], failRate: 0.3 })
 - Tasks use React and CSS Modules only. No UI libraries, because most rounds don't allow them.
 - Progress and notes live in localStorage. Export them from the dashboard regularly.
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the 10-week plan, and [`docs/TASK_AUTHORING.md`](docs/TASK_AUTHORING.md) to add tasks.
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the 12-week plan, round formats and per-company notes, and [`docs/TASK_AUTHORING.md`](docs/TASK_AUTHORING.md) to add tasks.

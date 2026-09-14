@@ -101,6 +101,7 @@ function patch(container: Element, oldVNode: VNode, newVNode: VNode): Node;
 3. **Style objects.** Support `style: { color: 'red', fontSize: '12px' }`, removing only the properties that are no longer present.
 4. **Event delegation.** Instead of one listener per element, register a single listener per event type on the container and dispatch to handlers stored on the nodes. What are the trade-offs?
 5. **Batching.** Add a `createApp(view, container)` with `setState` that schedules a single `patch` per microtask no matter how many updates happen.
+6. **Virtualize a real DOM.** BFE's Virtual DOM I, tagged Meta. Implement `virtualize(element)`, which turns an existing DOM subtree into vnodes (text nodes, attributes, `className`), and check that `render(virtualize(el))` produces an equal tree.
 
 ## Concepts covered
 Virtual nodes as plain data · children normalization · reconciliation by type and position · attributes vs properties · listener bookkeeping · keyed diffing · measuring minimality with `MutationObserver`.

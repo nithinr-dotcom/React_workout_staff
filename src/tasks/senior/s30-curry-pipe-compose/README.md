@@ -77,6 +77,7 @@ interface CurryModule {
 2. **Async pipe.** `pipeAsync(...fns)` returns a function that always returns a Promise. Each step may return a value or a promise; the next step receives the awaited value. A throw or rejection in any step rejects the result and stops later steps.
 3. **Typing pipe.** Write TypeScript overloads (or a variadic tuple type) so `pipe(parseInt, (n: number) => n * 2, String)` is inferred as `(s: string) => string` and a mismatched step is a compile error.
 4. **Where it matters in React.** Show a real use: composing HOCs (`compose(withRouter, withTheme)(Component)`), selector pipelines, or middleware. Why did hooks mostly replace HOC composition?
+5. **Open-ended currying.** Implement `sum` so that `sum(1)(2)(3)()` returns `6` and `sum(1, 2)(3)()` also works. BFE #23 and Devtools.tech ask this. Then make `+sum(1)(2)(3)` work without the final call, using `valueOf` / `Symbol.toPrimitive`. What are the downsides of that trick?
 
 ## Concepts covered
 Closures capturing argument lists · `Function.prototype.length` · partial application vs currying · `reduce` / `reduceRight` · promise chaining.

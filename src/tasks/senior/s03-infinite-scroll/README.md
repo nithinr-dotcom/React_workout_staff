@@ -77,6 +77,7 @@ Default-export the component from `Solution.tsx`.
 3. **New posts banner.** Poll for posts newer than the first one every 30 seconds. Instead of shifting the content, show a "3 new posts" button that prepends them and scrolls to the top.
 4. **Feed keyboard navigation.** Make articles focusable and implement the feed pattern's `Page Down` / `Page Up` to move between articles, and `Ctrl+End` to move focus past the feed. Loading should also trigger when focus reaches the last article.
 5. **Optimistic likes.** Add a like button per post using `toggleLike` (which fails 20% of the time). Update immediately, roll back on failure, and handle a second click while the first request is pending.
+6. **Load more first.** Rippling asks it in this order. Start with a "Load more" button. Then switch to loading automatically on scroll behind a prop, sharing the same data hook. What changes, and what stays the same?
 
 ## Concepts covered
 `IntersectionObserver` with a sentinel element · cursor pagination · refs as synchronous in-flight guards (versus state, which is stale inside callbacks) · `AbortController` on unmount · deduplicating by id with a `Set` · loading, error, empty and end-of-list states · the ARIA feed pattern.

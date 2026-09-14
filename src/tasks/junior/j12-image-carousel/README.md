@@ -76,6 +76,7 @@ Default-export the component from `Solution.tsx`.
 2. **Slide transition.** Animate slides horizontally with `transform: translateX(-index * 100%)` on a track. Make wrap-around from the last slide to the first look continuous, not a rewind across every slide.
 3. **Swipe.** Support touch and pointer swiping with Pointer Events: a drag past a threshold changes slide, a smaller drag snaps back, and vertical scrolling still works.
 4. **Lazy images.** Load only the current and neighbouring images. Discuss `loading="lazy"`, `decoding="async"` and preloading the next image.
+5. **Minimal DOM.** GreatFrontEnd's Image Carousel III asks for this. Render at most the current image and the one animating in, never all of them. The slide animation must still work, including the wrap-around. How do you keep the outgoing image mounted until its transition ends?
 
 ## Concepts covered
 Modular index arithmetic · `setInterval` / `setTimeout` lifecycles and cleanup · deriving "is paused" from several independent reasons · focus-within detection · the ARIA carousel pattern and polite live regions.

@@ -71,6 +71,7 @@ Default-export the component from `Solution.tsx`.
 2. **Controlled mode.** Add optional `selectedId` and `onChange(id)` props, so a parent can own the selection (for example, to sync it with the URL).
 3. **Lazy panels.** `content` becomes a `ReactNode`. A panel's content mounts the first time its tab is selected and then stays mounted, so its state survives switching tabs.
 4. **Vertical orientation.** Add `orientation?: 'horizontal' | 'vertical'`. Vertical tabs use `ArrowUp` / `ArrowDown` and set `aria-orientation` on the tab list.
+5. **Compound API and closable tabs.** Razorpay and Atlassian ask this version. Redesign the API as compound components (`<Tabs><Tabs.List><Tabs.Tab id>…</Tabs.List><Tabs.Panel id>…</Tabs.Panel></Tabs>`) that share state through context. Support both controlled and uncontrolled use. Let the user add and close tabs at runtime; when the selected tab closes, select its neighbour and move focus to it. Why compound components rather than an `items` prop? When would `useReducer` help?
 
 ## Concepts covered
 The ARIA tabs pattern · roving tabindex · refs to a list of elements · `useId` for id relationships · automatic vs manual activation · deriving a valid selection from props.

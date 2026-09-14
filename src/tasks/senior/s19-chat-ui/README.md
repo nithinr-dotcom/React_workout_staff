@@ -101,6 +101,7 @@ Default-export the component from `Solution.tsx`.
 3. **Load older messages.** Add a `loadOlder()` prop that is called when the user scrolls to the top. Prepend the result without the viewport jumping (preserve the distance from the bottom).
 4. **Batch bursts.** Coalesce messages that arrive within one animation frame into a single state update. Measure the difference with the React Profiler using the mock's `burstEvery` option.
 5. **Grouping.** Group consecutive messages by the same author within 5 minutes, and add day separators ("Today", "Yesterday").
+6. **Queued prompts (ChatGPT-style).** The "other side" is an assistant that streams one reply at a time. Messages the user sends while a reply is streaming go into a visible queue and are sent one by one once the reply finishes. Queued messages can be edited or removed, and a Stop button cancels the current reply.
 
 ## Concepts covered
 Subscribing to an external event source in `useEffect` with cleanup · refs for values that must not trigger renders (socket, "was at bottom") · `useLayoutEffect` for scroll adjustments before paint · bounded lists · `role="log"` and `role="status"` live regions · Enter vs Shift+Enter and IME composition · reconnect with exponential backoff.
