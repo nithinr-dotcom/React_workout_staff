@@ -1,0 +1,12 @@
+{
+  // Practice workspace: AI completions are OFF on purpose. Rebuild the muscle memory.
+  "github.copilot.enable": { "*": false },
+  "github.copilot.editor.enableAutoCompletions": false,
+  "github.copilot.nextEditSuggestions.enabled": false,
+  "editor.inlineSuggest.enabled": false,
+  "cursor.cpp.disabledLanguages": ["typescript", "typescriptreact", "javascript", "javascriptreact", "css", "markdown"],
+  "windsurf.autocompleteEnabled": false,
+  "codeium.enableConfig": { "*": false },
+  "editor.formatOnSave": true,
+  "files.exclude": { "**/node_modules": true }
+}

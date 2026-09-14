@@ -1,0 +1,30 @@
+.group {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.box {
+  width: 44px;
+  height: 52px;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #101828;
+  caret-color: transparent;
+}
+
+.box:focus-visible,
+.box:focus {
+  outline: 2px solid #4f46e5;
+  outline-offset: 1px;
+  border-color: #4f46e5;
+}
+
+.box:disabled {
+  background: #f2f4f7;
+  color: #98a2b3;
+}

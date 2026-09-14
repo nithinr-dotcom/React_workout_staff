@@ -1,0 +1,33 @@
+import type { CellId } from './types';
+
+/** A small budget sheet that exercises ranges, precedence, dependents and errors. */
+export const BUDGET_SHEET: Record<CellId, string> = {
+  A1: 'Item',
+  B1: 'Qty',
+  C1: 'Unit price',
+  D1: 'Total',
+  A2: 'Laptops',
+  B2: '4',
+  C2: '1450',
+  D2: '=B2*C2',
+  A3: 'Monitors',
+  B3: '6',
+  C3: '320',
+  D3: '=B3*C3',
+  A4: 'Licences',
+  B4: '10',
+  C4: '49.5',
+  D4: '=B4*C4',
+  A6: 'Subtotal',
+  D6: '=SUM(D2:D4)',
+  A7: 'Tax %',
+  D7: '18',
+  A8: 'Grand total',
+  D8: '=D6 + D6 * D7 / 100',
+  A10: 'Per head',
+  B10: '0',
+  D10: '=D8 / B10',
+  A12: 'Cycle demo',
+  B12: '=C12+1',
+  C12: '=B12*2',
+};

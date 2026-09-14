@@ -1,0 +1,211 @@
+.explorer {
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #eaecf0;
+  background: #f9fafb;
+}
+
+.toolbarTitle {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #475467;
+}
+
+.tree,
+.group {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tree {
+  padding-block: 4px;
+}
+
+.item {
+  outline: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding-inline-end: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.row:hover {
+  background: #f2f4f7;
+}
+
+.item:focus-visible > .row {
+  outline: 2px solid #4f46e5;
+  outline-offset: -2px;
+}
+
+.selected,
+.selected:hover {
+  background: #eef2ff;
+}
+
+.chevron {
+  width: 12px;
+  display: inline-flex;
+  justify-content: center;
+  color: #667085;
+  transition: transform 0.15s;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+.folderIcon,
+.fileIcon {
+  flex: none;
+  width: 14px;
+  height: 11px;
+  border-radius: 2px;
+}
+
+.folderIcon {
+  background: #f5b841;
+}
+
+.fileIcon {
+  width: 10px;
+  height: 13px;
+  background: #d0d5dd;
+}
+
+.name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: inline-flex;
+  gap: 2px;
+  opacity: 0;
+}
+
+.row:hover .actions,
+.item:focus-within > .row .actions {
+  opacity: 1;
+}
+
+.iconButton {
+  border: 0;
+  background: transparent;
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 11px;
+  color: #475467;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: #e4e7ec;
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid #4f46e5;
+  opacity: 1;
+}
+
+.inputRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding-block: 3px;
+  padding-inline-end: 6px;
+}
+
+.inputRow .fileIcon,
+.inputRow .folderIcon {
+  margin-top: 7px;
+  margin-inline-start: 18px;
+}
+
+.inputWrap {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.input {
+  font: inherit;
+  padding: 2px 6px;
+  border: 1px solid #4f46e5;
+  border-radius: 4px;
+  min-width: 0;
+}
+
+.input[aria-invalid='true'] {
+  border-color: #d92d20;
+}
+
+.error {
+  font-size: 12px;
+  color: #b42318;
+}
+
+.empty {
+  padding-block: 4px;
+  padding-inline-start: 28px;
+  color: #98a2b3;
+  font-style: italic;
+}
+
+.emptyTree {
+  margin: 0;
+  padding: 16px;
+  color: #667085;
+}
+
+.confirm {
+  display: grid;
+  gap: 6px;
+  margin: 4px 8px 6px;
+  padding: 8px 10px;
+  border: 1px solid #fecdca;
+  border-radius: 6px;
+  background: #fef3f2;
+}
+
+.confirmText {
+  color: #667085;
+  font-size: 12px;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 6px;
+}
+
+.danger {
+  background: #d92d20;
+  color: #fff;
+  border: 0;
+  border-radius: 4px;
+  padding: 3px 10px;
+}

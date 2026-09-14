@@ -1,0 +1,91 @@
+.root {
+  display: grid;
+  gap: 6px;
+  max-width: 420px;
+  font-family: system-ui, sans-serif;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.field {
+  position: relative;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+.input:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 1px;
+}
+
+.popup {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(16 24 40 / 12%);
+  overflow: hidden;
+}
+
+.listbox {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.option {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.optionActive {
+  background: #eef2ff;
+}
+
+.mark {
+  background: none;
+  color: inherit;
+  font-weight: 700;
+}
+
+.message:empty {
+  display: none;
+}
+
+.message {
+  padding: 10px 12px;
+  color: #667085;
+}
+
+.error {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: #b42318;
+}
+
+.retry {
+  padding: 4px 10px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+}

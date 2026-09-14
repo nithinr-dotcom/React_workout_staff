@@ -1,0 +1,198 @@
+.comments {
+  display: grid;
+  gap: 16px;
+  max-width: 720px;
+  font-size: 14px;
+  color: #101828;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #475467;
+}
+
+.sort select {
+  font: inherit;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #d0d5dd;
+}
+
+.composer,
+.inlineForm {
+  display: grid;
+  gap: 8px;
+}
+
+.inlineForm {
+  margin: 4px 0 8px 12px;
+}
+
+.textarea {
+  font: inherit;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 1px;
+}
+
+.formActions {
+  display: flex;
+  gap: 8px;
+}
+
+.formActions button {
+  font: inherit;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  cursor: pointer;
+}
+
+.formActions .primary {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #fff;
+}
+
+.formActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.thread,
+.replies {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.replies {
+  margin-top: 8px;
+  margin-left: 10px;
+  padding-left: 14px;
+  border-left: 2px solid #eaecf0;
+}
+
+/* Stop indenting after a few levels so deep threads stay readable. */
+.replies .replies .replies .replies .replies {
+  margin-left: 0;
+  padding-left: 6px;
+}
+
+.replies:hover {
+  border-left-color: #c7d2fe;
+}
+
+.node {
+  min-width: 0;
+}
+
+.comment {
+  display: grid;
+  gap: 4px;
+}
+
+.meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  color: #667085;
+  font-size: 12px;
+}
+
+.author {
+  font-weight: 600;
+  color: #344054;
+}
+
+.edited {
+  font-style: italic;
+}
+
+.text {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.deleted .text {
+  color: #98a2b3;
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 12px;
+}
+
+.actions button {
+  font: inherit;
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #475467;
+  cursor: pointer;
+}
+
+.actions button:hover {
+  background: #f2f4f7;
+}
+
+.actions button:focus-visible {
+  outline: 2px solid #4f46e5;
+}
+
+.link {
+  font-weight: 600;
+}
+
+.danger {
+  color: #b42318 !important;
+}
+
+.vote.voted {
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.votes {
+  color: #344054;
+  font-variant-numeric: tabular-nums;
+}
+
+.date {
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  margin: 0;
+  color: #667085;
+}
