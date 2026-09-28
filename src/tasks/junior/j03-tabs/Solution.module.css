@@ -1,2 +1,41 @@
 .root {
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tablist {
+  display: flex;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.tab {
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font: inherit;
+  color: #57606a;
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Selected indicator: underline + stronger text */
+.selected {
+  color: #1f2328;
+  font-weight: 600;
+  border-bottom-color: #0969da;
+}
+
+.tab:focus-visible,
+.panel:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: -2px;
+}
+
+.panel {
+  padding: 16px;
 }
