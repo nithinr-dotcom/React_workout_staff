@@ -1,2 +1,29 @@
 .root {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.box {
+  width: 2.5rem;
+  height: 3rem;
+  padding: 0;
+  border: 1px solid #8c959f;
+  border-radius: 8px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 1.5rem;
+  text-align: center;
+  background: #fff;
+  caret-color: transparent; /* the whole box is the "cursor"; the focus ring shows where you are */
+}
+
+.box:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 1px;
+  border-color: #0969da;
+}
+
+.box:disabled {
+  background: #f6f8fa;
+  color: #8c959f;
+  cursor: not-allowed;
 }

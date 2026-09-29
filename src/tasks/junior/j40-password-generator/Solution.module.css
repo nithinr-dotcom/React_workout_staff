@@ -1,2 +1,123 @@
 .root {
+  display: grid;
+  gap: 16px;
+  max-width: 420px;
+  font-family: system-ui, sans-serif;
+}
+
+.lengthRow,
+.passwordRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider {
+  flex: 1;
+}
+
+.lengthValue {
+  min-width: 2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.password {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 1rem;
+  background: #f6f8fa;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button {
+  padding: 8px 16px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.slider:focus-visible,
+.option input:focus-visible,
+.password:focus-visible,
+.button:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
+.copied {
+  color: #1a7f37;
+  font-weight: 600;
+}
+
+.strengthRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.track {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #eaeef2;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.weak {
+  width: 33%;
+  background: #cf222e;
+}
+
+.medium {
+  width: 66%;
+  background: #bf8700;
+}
+
+.strong {
+  width: 100%;
+  background: #1a7f37;
+}
+
+.strengthText {
+  min-width: 6ch;
+  font-weight: 600;
 }

@@ -1,2 +1,32 @@
 .root {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.star {
+  padding: 2px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: #8c959f;
+  cursor: pointer;
+}
+
+.filled {
+  color: #f5a623;
+}
+
+.star:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 1px;
+}
+
+.readOnly .star {
+  cursor: default;
+}
+
+.hoverArea {
+  display: inline-block;
 }

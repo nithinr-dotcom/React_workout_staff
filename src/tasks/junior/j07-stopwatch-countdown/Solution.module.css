@@ -1,2 +1,76 @@
 .root {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.section {
+  padding: 16px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: 1.125rem;
+}
+
+/* tabular-nums: every digit has the same width, so the display doesn't jitter */
+.display {
+  margin-bottom: 12px;
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.buttons button {
+  padding: 6px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.buttons button:disabled {
+  cursor: not-allowed;
+}
+
+.inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.inputs input {
+  width: 4em;
+  padding: 4px 6px;
+  font: inherit;
+}
+
+.laps {
+  margin: 12px 0 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.laps li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-top: 1px solid #eaeef2;
+}
+
+.lapTime {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+}
+
+.done {
+  margin: 12px 0 0;
+  font-weight: 600;
+  color: #cf222e;
 }

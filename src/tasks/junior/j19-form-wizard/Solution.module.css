@@ -1,2 +1,189 @@
 .root {
+  display: grid;
+  gap: 20px;
+  max-width: 460px;
+}
+
+/* ---------- Step indicator ---------- */
+
+.steps {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 3px solid #d0d7de;
+  color: #57606a;
+  font-size: 0.875rem;
+}
+
+.stepNumber {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.done {
+  border-color: #1f883d;
+  color: #1f883d;
+}
+
+.done .stepNumber {
+  border-color: #1f883d;
+  background: #1f883d;
+  color: #fff;
+}
+
+.current {
+  border-color: #0969da;
+  color: #0969da;
+  font-weight: 600;
+}
+
+.upcoming {
+  color: #57606a;
+}
+
+/* ---------- Form ---------- */
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.heading:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.hint {
+  font-size: 0.8125rem;
+  color: #57606a;
+}
+
+.input {
+  padding: 8px 10px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.input:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 1px;
+}
+
+.inputInvalid {
+  border-color: #cf222e;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #cf222e;
+}
+
+/* ---------- Review ---------- */
+
+.summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.summary dt {
+  font-weight: 600;
+}
+
+.summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Buttons ---------- */
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.primary,
+.secondary {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  border: none;
+  background: #1f883d;
+  color: #fff;
+}
+
+.secondary {
+  border: 1px solid #d0d7de;
+  background: #fff;
+  color: #24292f;
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.success {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f883d;
+}
+
+/* Text for screen readers only. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }

@@ -1,2 +1,100 @@
 .root {
+  display: grid;
+  gap: 16px;
+  max-width: 520px;
+}
+
+.form {
+  display: grid;
+  gap: 4px;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.input:focus-visible,
+.button:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
+.button {
+  padding: 8px 16px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background: #f6f8fa;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: #eaeef2;
+}
+
+/* Idle / blank / not-found messages: calm, grey text. */
+.message {
+  margin: 0;
+  color: #57606a;
+}
+
+.message:empty {
+  display: none;
+}
+
+.loading {
+  font-style: italic;
+}
+
+.result {
+  padding: 12px 16px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+}
+
+.word {
+  margin: 0 0 8px;
+}
+
+.meanings {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* Part of speech looks different from the definition. */
+.pos {
+  font-style: italic;
+  color: #8250df;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid #cf222e;
+  border-radius: 6px;
+  background: #ffebe9;
+  color: #82071e;
+}
+
+.error p {
+  margin: 0;
 }

@@ -1,11 +1,13 @@
-import type { TabsProps } from './types';
-import styles from './Solution.module.css';
-import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import type { TabsProps } from "./types";
+import styles from "./Solution.module.css";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
 
 export default function Tabs({ tabs, defaultTabId }: TabsProps) {
   // 1. STATE: store only the selected id (a single value — tabs are never "multi").
   //    It may be undefined or point at an id that doesn't exist; we fix that below.
-  const [selectedId, setSelectedId] = useState<string | undefined>(defaultTabId);
+  const [selectedId, setSelectedId] = useState<string | undefined>(
+    defaultTabId,
+  );
 
   // 2. UNIQUE IDS per instance, so two <Tabs> on one page never collide.
   const baseId = useId();
@@ -33,21 +35,24 @@ export default function Tabs({ tabs, defaultTabId }: TabsProps) {
     tabRefs.current[index]?.focus();
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => {
     const count = tabs.length;
     let target: number;
 
     switch (e.key) {
-      case 'ArrowRight':
+      case "ArrowRight":
         target = (index + 1) % count; // last → first
         break;
-      case 'ArrowLeft':
+      case "ArrowLeft":
         target = (index - 1 + count) % count; // first → last
         break;
-      case 'Home':
+      case "Home":
         target = 0;
         break;
-      case 'End':
+      case "End":
         target = count - 1;
         break;
       default:
@@ -77,7 +82,7 @@ export default function Tabs({ tabs, defaultTabId }: TabsProps) {
               // 5. ROVING TABINDEX: only the selected tab is reachable with Tab.
               //    Pressing Tab again skips the other tabs and goes to the panel.
               tabIndex={isSelected ? 0 : -1}
-              className={`${styles.tab} ${isSelected ? styles.selected : ''}`}
+              className={`${styles.tab} ${isSelected ? styles.selected : ""}`}
               onClick={() => setSelectedId(tab.id)}
               onKeyDown={(e) => handleKeyDown(e, index)}
             >
