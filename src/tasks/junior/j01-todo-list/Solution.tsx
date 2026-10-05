@@ -2,270 +2,275 @@ import {
   useEffect,
   useRef,
   useState,
-  type ChangeEvent,
   type KeyboardEvent,
   type SubmitEvent,
 } from "react";
-import styles from "./Solution.module.css";
-// BEFORE: `Todo`, the filter type and the "j01-todos" key were redeclared here.
-// WHY: two copies drift apart; the tests read storage via TODO_STORAGE_KEY.
-// NOW: import the shared definitions from ./types.
-import { TODO_STORAGE_KEY, type Todo, type TodoFilter } from "./types";
 
-const FILTER: { value: TodoFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "active", label: "Active" },
-  { value: "completed", label: "Completed" },
-];
-
-// Unchanged: this was already right. Bad or missing data falls back to [].
-const loadTodos = (): Todo[] => {
+interface Todo {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+type Filter = "all" | "completed" | "active";
+const TODO_KEY = "J01";
+const getTodos = () => {
   try {
-    const todos = localStorage.getItem(TODO_STORAGE_KEY);
-    if (!todos) return [];
-    const parsedTodo: unknown = JSON.parse(todos);
-
-    return Array.isArray(parsedTodo) ? (parsedTodo as Todo[]) : [];
+    const raw = localStorage.getItem(TODO_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as Todo[]) : [];
   } catch {
     return [];
   }
 };
-
+// BEFORE: `label: Filter` with lowercase labels, and the button rendered
+// `item.value`, so the label field was never used.
+// WHY: a button's text IS its accessible name. Screen readers announce it and
+// tests query it (`getByRole("button", { name: "All" })`). The internal value
+// ("all") and the human text ("All") are different things, so keep both.
+// NOW: `label` is a plain display string, and the button renders it.
+const FILTER: { label: string; value: Filter }[] = [
+  { label: "All", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Completed", value: "completed" },
+];
 export default function TodoApp() {
-  const [todos, setTodos] = useState<Todo[]>(loadTodos);
-  const [filter, setFilter] = useState<TodoFilter>("all");
+  const [todoList, setTodoList] = useState(getTodos);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [title, setTitle] = useState("");
   const [newTitle, setNewTitle] = useState("");
-
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-
-  const editRef = useRef<HTMLInputElement>(null);
-  // A plain value ref (not attached to JSX). Enter/Escape set it so the blur
-  // that can follow the input unmounting doesn't save again or undo a cancel.
-  const skipBlurRef = useRef(false);
-
-  // BEFORE: `filter === "all" ? todos : ...`
-  // WHY: it returned an array, which only worked because arrays are truthy.
-  // NOW: return a real boolean for every branch.
-  const filteredTodo = todos.filter((td) =>
-    filter === "active"
-      ? !td.completed
-      : filter === "completed"
-        ? td.completed
-        : true,
+  const [openId, setOpenId] = useState<null | string>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const blurRef = useRef(false);
+  const visibleTodos = todoList.filter((item) =>
+    filter === "all"
+      ? true
+      : filter === "active"
+        ? !item.completed
+        : item.completed,
   );
-  // NEW: derived values are computed each render, never stored in state
-  // (storing them would mean keeping two things in sync by hand).
-  const activeCount = todos.filter((td) => !td.completed).length;
-  const hasCompleted = todos.length > activeCount;
-
-  // BEFORE: `if (newTitle.trim() !== "") ...` wrapped the save, trim() ran
-  // twice, and setEditId(null) was called here too.
-  // WHY: the editor has already closed on blur by the time you submit, so
-  // resetting editId did nothing.
-  // NOW: trim once, return early on blank input, save the trimmed value.
   const addTodo = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const title = newTitle.trim();
-    if (!title) return;
-    setTodos((prev) => [
+
+    const value = title.trim();
+    if (!value) return;
+    // BEFORE: `{ id: ..., title, completed: false }`
+    // WHY: `title` is the raw input, so "  milk  " was saved with its spaces.
+    // The trimmed copy in `value` was only used for the blank check.
+    // NOW: save the trimmed `value`.
+    setTodoList((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), title, completed: false },
+      { id: crypto.randomUUID(), title: value, completed: false },
     ]);
-    setNewTitle("");
+    setTitle("");
   };
-
-  const toggleTodo = (id: string) => {
-    setTodos((prev) =>
-      prev.map((data) =>
-        data.id === id ? { ...data, completed: !data.completed } : data,
-      ),
+  const toggleComplete = (id: string) => {
+    setTodoList((prev) =>
+      prev.map((item) => {
+        if (item.id === id) return { ...item, completed: !item.completed };
+        return item;
+      }),
     );
   };
-
-  // NEW: delete and clear completed. Same immutable pattern: filter returns a
-  // new array, and the old one is never changed.
-  const deleteTodo = (id: string) => {
-    setTodos((prev) => prev.filter((data) => data.id !== id));
+  const startEditing = (item: Todo) => {
+    // Some browsers (e.g. Firefox) don't fire blur when the focused input is
+    // removed. Without this reset, the `true` left over from Escape would make
+    // the first real click-away in this edit get skipped.
+    blurRef.current = false;
+    setOpenId(item.id);
+    setNewTitle(item.title);
+    // Focus is NOT done here: the input doesn't exist until the next render,
+    // so inputRef.current would be null. The useEffect on [openId] does it.
   };
-  const clearCompleted = () => {
-    setTodos((prev) => prev.filter((data) => !data.completed));
+  // Correct: set the "skip blur" flag FIRST, then act. Enter and Escape
+  // finish the edit themselves, so the blur that can follow when the input
+  // unmounts must not save again (or undo a cancel).
+  // History: this used to check `title` (the NEW todo input) instead of
+  // `newTitle`, and used "Esc" instead of "Escape", so nothing ran.
+  const keyDownHandler = (e: KeyboardEvent<HTMLInputElement>) => {
+    switch (e.key) {
+      case "Enter":
+        blurRef.current = true;
+        editTodoList();
+        return;
+      case "Escape":
+        blurRef.current = true;
+        cancelEdit();
+        return;
+      default:
+        return;
+    }
   };
-
-  // BEFORE: didn't reset skipBlurRef.
-  // WHY: some browsers (e.g. Firefox) don't fire blur when a focused input is
-  // removed, so after Escape the flag stayed `true`, and the next click-away
-  // was swallowed: no save, and the editor stayed open.
-  // NOW: every edit starts with a clean flag.
-  const toggleEdit = (todo: Todo) => {
-    skipBlurRef.current = false;
-    setEditId(todo.id);
-    setEditTitle(todo.title);
-  };
-  const editTodo = (e: ChangeEvent<HTMLInputElement>) => {
-    setEditTitle(e.target.value);
-  };
-  // BEFORE: no guard, and editId was read inside the updater.
-  // NOW: bail out if nothing is being edited; copy the id into a local so the
-  // updater doesn't depend on state read later.
-  const commitEdit = () => {
-    if (editId === null) return;
-    const id = editId;
-    const value = editTitle.trim();
-    // An empty title deletes the todo (TodoMVC behaviour).
-    setTodos((prev) =>
+  // BEFORE:
+  //   if (!value) return;
+  //   ...map(...) returning `{ ...item, title: newTitle }`
+  // WHY (1): the README says saving an empty title DELETES the todo. The early
+  // return just left the editor open instead.
+  // WHY (2): that early return also broke the blur flag. Enter set
+  // `blurRef.current = true`, then this returned without closing the editor,
+  // so the flag stayed `true` and the next real blur was skipped.
+  // WHY (3): it saved `newTitle` (untrimmed) instead of the trimmed `value`.
+  // NOW: an empty value removes the todo with `filter`, anything else saves the
+  // trimmed value with `map`, and the editor ALWAYS closes, so there is no path
+  // that leaves it open with a stale flag.
+  const editTodoList = () => {
+    const value = newTitle.trim();
+    setTodoList((prev) =>
       value
-        ? prev.map((v) => (v.id === id ? { ...v, title: value } : v))
-        : prev.filter((v) => v.id !== id),
+        ? prev.map((item) =>
+            item.id === openId ? { ...item, title: value } : item,
+          )
+        : prev.filter((item) => item.id !== openId),
     );
-    setEditId(null);
+    setOpenId(null);
   };
   const cancelEdit = () => {
-    setEditTitle("");
-    setEditId(null);
+    setOpenId(null);
+    setNewTitle("");
   };
-
-  // BEFORE: set the flag *after* commitEdit()/cancelEdit().
-  // WHY: that worked, because React re-renders (and any blur fires) only after
-  // this handler ends, but "put up the note first, then act" is the safer habit.
-  // NOW: set the flag first.
-  const onKeydown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      skipBlurRef.current = true;
-      commitEdit();
-    } else if (e.key === "Escape") {
-      skipBlurRef.current = true;
-      cancelEdit();
-    }
-  };
-  const onEditBlur = () => {
-    if (skipBlurRef.current) {
-      skipBlurRef.current = false;
+  // Correct: a blur caused by Enter/Escape is skipped (and the flag is reset).
+  // Any other blur means the user clicked away, which saves per the README.
+  // History: this used to call cancelEdit(), which threw the edit away.
+  // A ref (not state) is used because it changes immediately and doesn't
+  // re-render; a state update wouldn't be visible to a blur in the same tick.
+  const blurHandler = () => {
+    if (blurRef.current) {
+      blurRef.current = false;
       return;
     }
-    commitEdit();
+    editTodoList();
   };
-
   useEffect(() => {
-    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(todos));
-  }, [todos]);
-  // Focus after the render that mounted the input (focusing inside toggleEdit
-  // would run before the input exists, so editRef.current would be null).
+    const raw = JSON.stringify(todoList);
+    localStorage.setItem(TODO_KEY, raw);
+  }, [todoList]);
   useEffect(() => {
-    if (editId !== null) editRef.current?.focus();
-  }, [editId]);
-
-  // BEFORE: a console.log({ todos }) ran on every render. Removed.
+    if (openId !== null) inputRef.current?.focus();
+  }, [openId]);
   return (
-    <div className={styles.root}>
-      <form onSubmit={addTodo}>
-        {/* BEFORE: aria-label="new todo". The accessible name is what screen
-            readers announce and what tests query ("New todo"). */}
-        <input
-          aria-label="New todo"
-          placeholder="What needs to be done?"
-          value={newTitle}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setNewTitle(e.target.value)
-          }
-        />
-      </form>
-
-      {todos.length === 0 ? (
-        <p>Nothing to do yet</p>
-      ) : (
-        <>
-          {/* BEFORE: <div> for the list and each row.
-              NOW: <ul>/<li>, so screen readers announce "list, 3 items". */}
-          <ul>
-            {filteredTodo.map((td) => (
-              <li key={td.id}>
-                {editId === td.id ? (
-                  // BEFORE: no aria-label, so it was announced as just "edit text".
+    <div>
+      <div>
+        <form onSubmit={addTodo}>
+          {/* BEFORE: <label aria-label="new todo"><input /></label>
+              WHY: aria-label names the element it is ON. Here it named the
+              <label>, not the input, and the <label> had no text inside, so
+              the input itself had no accessible name at all. A screen reader
+              announced just "edit text", and getByRole("textbox",
+              { name: "New todo" }) found nothing. (Also, the name is
+              case-sensitive in the test: "New todo", not "new todo".)
+              NOW: put aria-label directly on the input. The two valid options:
+                1. aria-label="..." on the input (no visible text), or
+                2. <label>Visible text <input /></label> (wrapping), or
+                   <label htmlFor="id"> + <input id="id">.
+              Option 2 is better for sighted users when you have room for it;
+              the placeholder is NOT a label (it disappears once you type). */}
+          <input
+            aria-label="New todo"
+            placeholder="What needs to be done?"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </form>
+        {/* BEFORE: <div> for the list and <div> for each row.
+            WHY: divs have no meaning. With <ul>/<li>, a screen reader says
+            "list, 3 items" and lets the user jump between items, so they know
+            how many todos there are without reading every one.
+            NOW: <ul> + <li>. */}
+        <ul>
+          {visibleTodos.map((item) => (
+            <li key={item.id}>
+              {openId === item.id ? (
+                // BEFORE: no label, so it was announced as just "edit text".
+                // WHY: when focus jumps into this input, the user needs to
+                // hear what it is for.
+                // NOW: aria-label="Edit todo" (the name the tests query).
+                <input
+                  aria-label="Edit todo"
+                  value={newTitle}
+                  ref={inputRef}
+                  onKeyDown={keyDownHandler}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  onBlur={blurHandler}
+                />
+              ) : (
+                <>
+                  {/* BEFORE: an unlabelled checkbox, announced as just
+                      "checkbox, not checked". With 10 rows, the user can't
+                      tell which todo each checkbox belongs to.
+                      NOW: aria-label={item.title}, so it reads "Buy milk,
+                      checkbox, not checked".
+                      Why not wrap the title in a <label> instead? Clicking a
+                      label clicks its checkbox, so double-clicking the title
+                      to edit would toggle the todo twice on the way (a README
+                      edge case). aria-label names it without that side effect.
+                      Order: the checkbox comes first, matching the visual and
+                      tab order users expect (checkbox, then text). */}
                   <input
-                    aria-label="Edit todo"
-                    ref={editRef}
-                    value={editTitle}
-                    onChange={editTodo}
-                    onKeyDown={onKeydown}
-                    onBlur={onEditBlur}
+                    type="checkbox"
+                    aria-label={item.title}
+                    checked={item.completed}
+                    onChange={() => toggleComplete(item.id)}
                   />
-                ) : (
-                  <>
-                    {/* BEFORE: an unlabelled checkbox read as just "checkbox".
-                        NOW: labelled with the todo's title. */}
-                    <input
-                      type="checkbox"
-                      aria-label={td.title}
-                      checked={td.completed}
-                      onChange={() => toggleTodo(td.id)}
-                    />
-                    <span
-                      onDoubleClick={() => toggleEdit(td)}
-                      style={{
-                        textDecoration: td.completed
-                          ? "line-through"
-                          : undefined,
-                      }}
-                    >
-                      {td.title}
-                    </span>
-                    {/* NEW: double-click on a <span> can't be reached by
-                        keyboard; a real button can. aria-label gives the
-                        icon-only buttons a name, unique per row. */}
-                    <button
-                      type="button"
-                      aria-label={`Edit ${td.title}`}
-                      onClick={() => toggleEdit(td)}
-                    >
-                      ✎
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`Delete ${td.title}`}
-                      onClick={() => deleteTodo(td.id)}
-                    >
-                      ✕
-                    </button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-
-          {/* NEW: todos exist but none match the filter; the page used to go blank. */}
-          {filteredTodo.length === 0 && <p>No {filter} todos</p>}
-
-          <footer>
-            {/* NEW: items-left counter, with singular/plural handled. */}
-            <span>
-              {activeCount} {activeCount === 1 ? "item" : "items"} left
-            </span>
-            {/* BEFORE: a <select> dropdown.
-                NOW: toggle buttons; all options are visible and one click
-                away, and aria-pressed tells screen readers which is active.
-                type="button" so they never submit a form. */}
-            <div role="group" aria-label="Filter todos">
-              {FILTER.map((fl) => (
-                <button
-                  key={fl.value}
-                  type="button"
-                  aria-pressed={filter === fl.value}
-                  onClick={() => setFilter(fl.value)}
-                >
-                  {fl.label}
-                </button>
-              ))}
-            </div>
-            {/* NEW: only shown when there is something to clear. */}
-            {hasCompleted && (
-              <button type="button" onClick={clearCompleted}>
-                Clear completed
-              </button>
-            )}
-          </footer>
-        </>
-      )}
+                  {/* Double-click is a mouse-only shortcut. That's fine as an
+                      extra, but it can't be the ONLY way to edit (see the Edit
+                      button below). The line-through is the visual cue for
+                      "completed"; the checkbox state carries the same info
+                      for screen readers, so colour/style isn't the only signal. */}
+                  <span
+                    onDoubleClick={() => startEditing(item)}
+                    style={{
+                      textDecoration: item.completed ? "line-through" : undefined,
+                    }}
+                  >
+                    {item.title}
+                  </span>
+                  {/* NEW: a real <button> to edit.
+                      WHY: a <span> with onDoubleClick can't be focused with
+                      Tab or triggered with Enter/Space, so keyboard and
+                      screen-reader users had no way to edit at all. A
+                      <button> gets focus, Enter and Space for free.
+                      aria-label: the visible text is just an icon, which
+                      reads as "pencil" or nothing. And "Edit" alone would be
+                      repeated on every row ("Edit, Edit, Edit..."), so the
+                      title is included to make each one unique: "Edit Buy milk".
+                      type="button": a <button> defaults to type="submit",
+                      which would submit any form it sits inside. */}
+                  <button
+                    type="button"
+                    aria-label={`Edit ${item.title}`}
+                    onClick={() => startEditing(item)}
+                  >
+                    ✎
+                  </button>
+                  {/* TODO (your turn): a Delete button follows the same
+                      pattern: type="button", aria-label={`Delete ${item.title}`},
+                      and an onClick that calls a deleteTodo(id) using filter. */}
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+      {/* BEFORE: a plain <div> of buttons with no state shown.
+          WHY: sighted users might see which filter is active (if styled), but
+          a screen reader had no way to know. Two attributes fix that:
+          - role="group" + aria-label: announces "Filter todos, group" when
+            entering, so the three buttons are understood as one control.
+          - aria-pressed: turns each button into a toggle button. The reader
+            says "All, toggle button, pressed" or "... not pressed".
+          NOW: both added, and the button text uses `label` ("All"). */}
+      <div role="group" aria-label="Filter todos">
+        {FILTER.map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            aria-pressed={filter === item.value}
+            onClick={() => setFilter(item.value)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
