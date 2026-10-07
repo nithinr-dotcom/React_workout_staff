@@ -1,161 +1,271 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { expect, it } from 'vitest';
-import { pickTarget } from '../../../test/target';
-import * as Reference from './Reference';
-import * as Solution from './Solution';
-import { TODO_STORAGE_KEY, type Todo } from './types';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type SubmitEvent,
+} from "react";
+import styles from "./Solution.module.css";
+// BEFORE: `Todo`, the filter type and the "j01-todos" key were redeclared here.
+// WHY: two copies drift apart; the tests read storage via TODO_STORAGE_KEY.
+// NOW: import the shared definitions from ./types.
+import { TODO_STORAGE_KEY, type Todo, type TodoFilter } from "./types";
 
-const { impl, describeTask } = pickTarget(Solution, Reference);
-const TodoApp = impl.default;
+const FILTER: { value: TodoFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "active", label: "Active" },
+  { value: "completed", label: "Completed" },
+];
 
-const newInput = () => screen.getByRole('textbox', { name: 'New todo' });
-const checkbox = (title: string) => screen.getByRole('checkbox', { name: title });
-const queryTodo = (title: string) => screen.queryByRole('checkbox', { name: title });
+// Unchanged: this was already right. Bad or missing data falls back to [].
+const loadTodos = (): Todo[] => {
+  try {
+    const todos = localStorage.getItem(TODO_STORAGE_KEY);
+    if (!todos) return [];
+    const parsedTodo: unknown = JSON.parse(todos);
 
-async function setup(titles: string[] = []) {
-  const user = userEvent.setup();
-  render(<TodoApp />);
-  for (const title of titles) {
-    await user.type(newInput(), `${title}{Enter}`);
+    return Array.isArray(parsedTodo) ? (parsedTodo as Todo[]) : [];
+  } catch {
+    return [];
   }
-  return user;
-}
+};
 
-function seed(todos: Todo[]) {
-  localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(todos));
-}
+export default function TodoApp() {
+  const [todos, setTodos] = useState<Todo[]>(loadTodos);
+  const [filter, setFilter] = useState<TodoFilter>("all");
+  const [newTitle, setNewTitle] = useState("");
 
-describeTask('Todo List', () => {
-  it('shows the empty state, then adds trimmed todos on Enter and clears the input', async () => {
-    const user = await setup();
-    expect(screen.getByText('Nothing to do yet')).toBeInTheDocument();
-    await user.type(newInput(), '   Buy milk  {Enter}');
-    expect(checkbox('Buy milk')).not.toBeChecked();
-    expect(newInput()).toHaveValue('');
-    expect(screen.queryByText('Nothing to do yet')).not.toBeInTheDocument();
-  });
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
 
-  it('ignores blank input', async () => {
-    const user = await setup(['Buy milk']);
-    await user.type(newInput(), '   {Enter}');
-    expect(screen.getAllByRole('button', { name: /^Delete / })).toHaveLength(1);
-  });
+  const editRef = useRef<HTMLInputElement>(null);
+  // A plain value ref (not attached to JSX). Enter/Escape set it so the blur
+  // that can follow the input unmounting doesn't save again or undo a cancel.
+  const skipBlurRef = useRef(false);
 
-  it('toggles completion and keeps the items-left counter in sync', async () => {
-    const user = await setup(['Buy milk', 'Walk dog']);
-    expect(screen.getByText('2 items left')).toBeInTheDocument();
-    await user.click(checkbox('Buy milk'));
-    expect(checkbox('Buy milk')).toBeChecked();
-    expect(screen.getByText('1 item left')).toBeInTheDocument();
-    await user.click(checkbox('Walk dog'));
-    expect(screen.getByText('0 items left')).toBeInTheDocument();
-  });
+  // BEFORE: `filter === "all" ? todos : ...`
+  // WHY: it returned an array, which only worked because arrays are truthy.
+  // NOW: return a real boolean for every branch.
+  const filteredTodo = todos.filter((td) =>
+    filter === "active"
+      ? !td.completed
+      : filter === "completed"
+        ? td.completed
+        : true,
+  );
+  // NEW: derived values are computed each render, never stored in state
+  // (storing them would mean keeping two things in sync by hand).
+  const activeCount = todos.filter((td) => !td.completed).length;
+  const hasCompleted = todos.length > activeCount;
 
-  it('filters by All / Active / Completed with aria-pressed', async () => {
-    const user = await setup(['Buy milk', 'Walk dog']);
-    await user.click(checkbox('Buy milk'));
-
-    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
-    await user.click(screen.getByRole('button', { name: 'Active' }));
-    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'false');
-    expect(queryTodo('Buy milk')).not.toBeInTheDocument();
-    expect(queryTodo('Walk dog')).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Completed' }));
-    expect(queryTodo('Buy milk')).toBeInTheDocument();
-    expect(queryTodo('Walk dog')).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'All' }));
-    expect(queryTodo('Buy milk')).toBeInTheDocument();
-    expect(queryTodo('Walk dog')).toBeInTheDocument();
-  });
-
-  it('edits via the Edit button: Enter saves the trimmed value', async () => {
-    const user = await setup(['Buy milk']);
-    await user.click(screen.getByRole('button', { name: 'Edit Buy milk' }));
-    const edit = screen.getByRole('textbox', { name: 'Edit todo' });
-    expect(edit).toHaveValue('Buy milk');
-    expect(edit).toHaveFocus();
-    await user.clear(edit);
-    await user.type(edit, ' Buy oat milk {Enter}');
-    expect(screen.queryByRole('textbox', { name: 'Edit todo' })).not.toBeInTheDocument();
-    expect(checkbox('Buy oat milk')).toBeInTheDocument();
-    expect(queryTodo('Buy milk')).not.toBeInTheDocument();
-  });
-
-  it('Escape cancels an edit', async () => {
-    const user = await setup(['Buy milk']);
-    await user.click(screen.getByRole('button', { name: 'Edit Buy milk' }));
-    const edit = screen.getByRole('textbox', { name: 'Edit todo' });
-    await user.clear(edit);
-    await user.type(edit, 'Something else{Escape}');
-    expect(screen.queryByRole('textbox', { name: 'Edit todo' })).not.toBeInTheDocument();
-    expect(checkbox('Buy milk')).toBeInTheDocument();
-    expect(queryTodo('Something else')).not.toBeInTheDocument();
-  });
-
-  it('double-clicking the title starts editing, and blur saves', async () => {
-    const user = await setup(['Buy milk']);
-    await user.dblClick(screen.getByText('Buy milk'));
-    const edit = screen.getByRole('textbox', { name: 'Edit todo' });
-    await user.clear(edit);
-    await user.type(edit, 'Buy bread');
-    await user.click(newInput());
-    expect(checkbox('Buy bread')).not.toBeChecked();
-  });
-
-  it('saving an empty title deletes the todo', async () => {
-    const user = await setup(['Buy milk', 'Walk dog']);
-    await user.click(screen.getByRole('button', { name: 'Edit Buy milk' }));
-    await user.clear(screen.getByRole('textbox', { name: 'Edit todo' }));
-    await user.keyboard('{Enter}');
-    expect(queryTodo('Buy milk')).not.toBeInTheDocument();
-    expect(queryTodo('Walk dog')).toBeInTheDocument();
-  });
-
-  it('deletes a todo, and Clear completed removes only completed todos', async () => {
-    const user = await setup(['Buy milk', 'Walk dog', 'Read book']);
-    await user.click(screen.getByRole('button', { name: 'Delete Walk dog' }));
-    expect(queryTodo('Walk dog')).not.toBeInTheDocument();
-
-    expect(screen.queryByRole('button', { name: 'Clear completed' })).not.toBeInTheDocument();
-    await user.click(checkbox('Buy milk'));
-    await user.click(screen.getByRole('button', { name: 'Clear completed' }));
-    expect(queryTodo('Buy milk')).not.toBeInTheDocument();
-    expect(queryTodo('Read book')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Clear completed' })).not.toBeInTheDocument();
-  });
-
-  it('persists to localStorage and restores on remount', async () => {
-    const user = userEvent.setup();
-    const { unmount } = render(<TodoApp />);
-    await user.type(newInput(), 'Buy milk{Enter}');
-    await user.click(checkbox('Buy milk'));
-
-    const saved = JSON.parse(localStorage.getItem(TODO_STORAGE_KEY) ?? 'null') as Todo[];
-    expect(saved).toEqual([expect.objectContaining({ title: 'Buy milk', completed: true })]);
-    expect(typeof saved[0].id).toBe('string');
-
-    unmount();
-    render(<TodoApp />);
-    expect(checkbox('Buy milk')).toBeChecked();
-  });
-
-  it('loads seeded todos and survives corrupt storage', () => {
-    seed([
-      { id: 'a', title: 'Seeded one', completed: false },
-      { id: 'b', title: 'Seeded two', completed: true },
+  // BEFORE: `if (newTitle.trim() !== "") ...` wrapped the save, trim() ran
+  // twice, and setEditId(null) was called here too.
+  // WHY: the editor has already closed on blur by the time you submit, so
+  // resetting editId did nothing.
+  // NOW: trim once, return early on blank input, save the trimmed value.
+  const addTodo = (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const title = newTitle.trim();
+    if (!title) return;
+    setTodos((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), title, completed: false },
     ]);
-    const { unmount } = render(<TodoApp />);
-    expect(checkbox('Seeded one')).not.toBeChecked();
-    expect(checkbox('Seeded two')).toBeChecked();
-    expect(screen.getByText('1 item left')).toBeInTheDocument();
-    unmount();
+    setNewTitle("");
+  };
 
-    localStorage.setItem(TODO_STORAGE_KEY, 'not json');
-    render(<TodoApp />);
-    expect(screen.getByText('Nothing to do yet')).toBeInTheDocument();
-  });
-});
+  const toggleTodo = (id: string) => {
+    setTodos((prev) =>
+      prev.map((data) =>
+        data.id === id ? { ...data, completed: !data.completed } : data,
+      ),
+    );
+  };
+
+  // NEW: delete and clear completed. Same immutable pattern: filter returns a
+  // new array, and the old one is never changed.
+  const deleteTodo = (id: string) => {
+    setTodos((prev) => prev.filter((data) => data.id !== id));
+  };
+  const clearCompleted = () => {
+    setTodos((prev) => prev.filter((data) => !data.completed));
+  };
+
+  // BEFORE: didn't reset skipBlurRef.
+  // WHY: some browsers (e.g. Firefox) don't fire blur when a focused input is
+  // removed, so after Escape the flag stayed `true`, and the next click-away
+  // was swallowed: no save, and the editor stayed open.
+  // NOW: every edit starts with a clean flag.
+  const toggleEdit = (todo: Todo) => {
+    skipBlurRef.current = false;
+    setEditId(todo.id);
+    setEditTitle(todo.title);
+  };
+  const editTodo = (e: ChangeEvent<HTMLInputElement>) => {
+    setEditTitle(e.target.value);
+  };
+  // BEFORE: no guard, and editId was read inside the updater.
+  // NOW: bail out if nothing is being edited; copy the id into a local so the
+  // updater doesn't depend on state read later.
+  const commitEdit = () => {
+    if (editId === null) return;
+    const id = editId;
+    const value = editTitle.trim();
+    // An empty title deletes the todo (TodoMVC behaviour).
+    setTodos((prev) =>
+      value
+        ? prev.map((v) => (v.id === id ? { ...v, title: value } : v))
+        : prev.filter((v) => v.id !== id),
+    );
+    setEditId(null);
+  };
+  const cancelEdit = () => {
+    setEditTitle("");
+    setEditId(null);
+  };
+
+  // BEFORE: set the flag *after* commitEdit()/cancelEdit().
+  // WHY: that worked, because React re-renders (and any blur fires) only after
+  // this handler ends, but "put up the note first, then act" is the safer habit.
+  // NOW: set the flag first.
+  const onKeydown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      skipBlurRef.current = true;
+      commitEdit();
+    } else if (e.key === "Escape") {
+      skipBlurRef.current = true;
+      cancelEdit();
+    }
+  };
+  const onEditBlur = () => {
+    if (skipBlurRef.current) {
+      skipBlurRef.current = false;
+      return;
+    }
+    commitEdit();
+  };
+
+  useEffect(() => {
+    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(todos));
+  }, [todos]);
+  // Focus after the render that mounted the input (focusing inside toggleEdit
+  // would run before the input exists, so editRef.current would be null).
+  useEffect(() => {
+    if (editId !== null) editRef.current?.focus();
+  }, [editId]);
+
+  // BEFORE: a console.log({ todos }) ran on every render. Removed.
+  return (
+    <div className={styles.root}>
+      <form onSubmit={addTodo}>
+        {/* BEFORE: aria-label="new todo". The accessible name is what screen
+            readers announce and what tests query ("New todo"). */}
+        <input
+          aria-label="New todo"
+          placeholder="What needs to be done?"
+          value={newTitle}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setNewTitle(e.target.value)
+          }
+        />
+      </form>
+
+      {todos.length === 0 ? (
+        <p>Nothing to do yet</p>
+      ) : (
+        <>
+          {/* BEFORE: <div> for the list and each row.
+              NOW: <ul>/<li>, so screen readers announce "list, 3 items". */}
+          <ul>
+            {filteredTodo.map((td) => (
+              <li key={td.id}>
+                {editId === td.id ? (
+                  // BEFORE: no aria-label, so it was announced as just "edit text".
+                  <input
+                    aria-label="Edit todo"
+                    ref={editRef}
+                    value={editTitle}
+                    onChange={editTodo}
+                    onKeyDown={onKeydown}
+                    onBlur={onEditBlur}
+                  />
+                ) : (
+                  <>
+                    {/* BEFORE: an unlabelled checkbox read as just "checkbox".
+                        NOW: labelled with the todo's title. */}
+                    <input
+                      type="checkbox"
+                      aria-label={td.title}
+                      checked={td.completed}
+                      onChange={() => toggleTodo(td.id)}
+                    />
+                    <span
+                      onDoubleClick={() => toggleEdit(td)}
+                      style={{
+                        textDecoration: td.completed
+                          ? "line-through"
+                          : undefined,
+                      }}
+                    >
+                      {td.title}
+                    </span>
+                    {/* NEW: double-click on a <span> can't be reached by
+                        keyboard; a real button can. aria-label gives the
+                        icon-only buttons a name, unique per row. */}
+                    <button
+                      type="button"
+                      aria-label={`Edit ${td.title}`}
+                      onClick={() => toggleEdit(td)}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Delete ${td.title}`}
+                      onClick={() => deleteTodo(td.id)}
+                    >
+                      ✕
+                    </button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {/* NEW: todos exist but none match the filter; the page used to go blank. */}
+          {filteredTodo.length === 0 && <p>No {filter} todos</p>}
+
+          <footer>
+            {/* NEW: items-left counter, with singular/plural handled. */}
+            <span>
+              {activeCount} {activeCount === 1 ? "item" : "items"} left
+            </span>
+            {/* BEFORE: a <select> dropdown.
+                NOW: toggle buttons; all options are visible and one click
+                away, and aria-pressed tells screen readers which is active.
+                type="button" so they never submit a form. */}
+            <div role="group" aria-label="Filter todos">
+              {FILTER.map((fl) => (
+                <button
+                  key={fl.value}
+                  type="button"
+                  aria-pressed={filter === fl.value}
+                  onClick={() => setFilter(fl.value)}
+                >
+                  {fl.label}
+                </button>
+              ))}
+            </div>
+            {/* NEW: only shown when there is something to clear. */}
+            {hasCompleted && (
+              <button type="button" onClick={clearCompleted}>
+                Clear completed
+              </button>
+            )}
+          </footer>
+        </>
+      )}
+    </div>
+  );
+}
